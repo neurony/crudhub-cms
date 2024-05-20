@@ -1,0 +1,21 @@
+Route::fallback(function ($url = '/') {
+    $page = app(\Zbiller\CrudhubCms\Contracts\PageModelContract::class)
+        ->where('slug', $url)
+        ->first();
+
+    if ($page instanceof \Zbiller\CrudhubCms\Contracts\PageModelContract && $page->exists) {
+        $controller = $page->route_controller;
+        $action = $page->route_action;
+
+        $route = app(\Illuminate\Routing\Route::class)
+            ->setAction([
+                'uses' => "$controller@$action",
+                'page' => $page,
+            ]);
+
+        return (new \Illuminate\Routing\ControllerDispatcher(app()))
+            ->dispatch($route, app($controller), $action);
+    }
+
+    abort(404);
+});
